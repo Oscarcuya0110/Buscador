@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Buscador de normativas y regulaciones del sector telecomunicaciones — OSIPTEL" />
+  <title>Normativa Telecom · OSIPTEL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ink: #1c1b18; --ink-2: #57564f; --ink-3: #9c9b93; --ink-4: #c8c7bf;
+      --surface: #f8f7f3; --white: #ffffff;
+      --border: #e4e2d9; --border-2: #d0cec4;
+      --navy: #1e3a5f; --navy-light: #eef2f8; --navy-mid: #2c4a7c;
+      --red: #b83228; --red-light: #fdf0ee; --red-mid: #c0392b;
+      --green-light: #edf4e8; --green: #2d6b30;
+      --ff-serif: 'Libre Baskerville', Georgia, serif;
+      --ff-sans: 'DM Sans', system-ui, sans-serif;
+      --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--ff-sans); background: var(--surface); color: var(--ink); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+    .page-wrap { max-width: 780px; margin: 0 auto; padding: 0 24px 80px; }
+
+    /* Header */
+    header { padding: 48px 0 36px; border-bottom: 1px solid var(--border); margin-bottom: 36px; animation: fadeUp .5s var(--ease-out) both; }
+    .header-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .eyebrow-text { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 2px; color: var(--ink-3); }
+    .sector-pill { display: inline-flex; align-items: center; gap: 5px; background: var(--red-light); color: var(--red-mid); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 1.2px; padding: 3px 10px; border-radius: 2px; }
+    .sector-pill svg { width: 12px; height: 12px; }
+    h1 { font-family: var(--ff-serif); font-size: clamp(24px, 4vw, 32px); font-weight: 400; line-height: 1.25; letter-spacing: -0.5px; margin-bottom: 8px; }
+    h1 em { font-style: italic; color: var(--navy-mid); }
+    .header-desc { font-size: 14px; color: var(--ink-2); line-height: 1.6; max-width: 520px; }
+
+    /* Search */
+    .search-section { animation: fadeUp .5s .08s var(--ease-out) both; }
+    .search-wrap { position: relative; margin-bottom: 12px; }
+    .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--ink-3); pointer-events: none; transition: color .2s; }
+    #search-input { width: 100%; height: 50px; padding: 0 48px 0 46px; border: 1.5px solid var(--border-2); border-radius: var(--radius-md); background: var(--white); font-family: var(--ff-sans); font-size: 15px; color: var(--ink); outline: none; transition: border-color .2s, box-shadow .2s; }
+    #search-input::placeholder { color: var(--ink-4); }
+    #search-input:focus { border-color: var(--navy-mid); box-shadow: 0 0 0 3px rgba(44,74,124,.1); }
+    #clear-btn { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; border: none; background: var(--border); border-radius: 50%; cursor: pointer; display: none; align-items: center; justify-content: center; color: var(--ink-2); transition: background .15s; }
+    #clear-btn:hover { background: var(--border-2); }
+    #clear-btn svg { width: 11px; height: 11px; }
+    .search-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 28px; }
+    .chip { font-size: 12px; padding: 4px 10px; border-radius: 20px; background: var(--white); border: 1px solid var(--border-2); color: var(--ink-2); cursor: pointer; transition: all .15s; font-family: var(--ff-sans); }
+    .chip:hover { background: var(--navy-light); border-color: var(--navy-mid); color: var(--navy-mid); }
+
+    /* Results bar */
+    .results-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; min-height: 24px; }
+    .results-count { font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 1px; font-weight: 500; }
+    .index-status { font-size: 11px; color: var(--ink-4); }
+    .index-status.loaded { color: var(--green); }
+    .index-status.error  { color: var(--red); }
+
+    /* Cards */
+    #results-list { list-style: none; }
+    .norma-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 16px; transition: border-color .15s, transform .15s var(--ease-out); animation: fadeUp .35s var(--ease-out) both; }
+    .norma-card:hover { border-color: var(--navy-mid); transform: translateY(-1px); }
+    .card-body { flex: 1; min-width: 0; }
+    .card-tipo { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 1.3px; color: var(--ink-3); margin-bottom: 5px; }
+    .card-titulo { font-family: var(--ff-serif); font-size: 14.5px; line-height: 1.55; color: var(--ink); margin-bottom: 10px; }
+    .card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .tag { font-size: 11px; padding: 2px 8px; border-radius: 3px; background: var(--navy-light); color: var(--navy-mid); white-space: nowrap; }
+    .tag.match { background: var(--green-light); color: var(--green); font-weight: 500; }
+    .card-fecha { font-size: 11px; color: var(--ink-3); margin-left: auto; white-space: nowrap; }
+    .btn-leer { flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; padding: 9px 15px; border: 1.5px solid var(--navy-mid); border-radius: var(--radius-sm); background: transparent; color: var(--navy-mid); font-family: var(--ff-sans); font-size: 12px; font-weight: 500; text-decoration: none; white-space: nowrap; cursor: pointer; transition: background .15s, color .15s; }
+    .btn-leer:hover { background: var(--navy-mid); color: var(--white); }
+    .btn-leer svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+    /* States */
+    .state-msg { text-align: center; padding: 60px 20px; color: var(--ink-3); }
+    .state-msg svg { width: 36px; height: 36px; margin-bottom: 14px; opacity: .4; }
+    .state-msg p { font-family: var(--ff-serif); font-size: 16px; color: var(--ink-2); margin-bottom: 6px; }
+    .state-msg span { font-size: 13px; }
+    .state-msg code { font-size: 12px; background: var(--border); padding: 1px 5px; border-radius: 3px; }
+
+    /* Update banner */
+    .update-banner { background: var(--navy-light); border: 1px solid #c5d4e8; border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 28px; display: none; }
+    .update-banner.visible { display: flex; align-items: flex-start; gap: 10px; }
+    .update-banner svg { width: 16px; height: 16px; color: var(--navy-mid); flex-shrink: 0; margin-top: 1px; }
+    .update-banner p { font-size: 13px; color: var(--navy); line-height: 1.5; }
+    .update-banner strong { font-weight: 500; }
+    .update-banner code { font-size: 11.5px; background: rgba(44,74,124,.1); padding: 1px 6px; border-radius: 3px; color: var(--navy-mid); }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--border); margin-top: 56px; padding-top: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    .footer-note { font-size: 12px; color: var(--ink-3); line-height: 1.5; }
+    .footer-note a { color: var(--navy-mid); text-decoration: none; }
+    .footer-note a:hover { text-decoration: underline; }
+    .footer-update { font-size: 11px; color: var(--ink-4); }
+
+    mark { background: #fff3b0; color: inherit; border-radius: 2px; padding: 0 1px; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 560px) {
+      .page-wrap { padding: 0 16px 60px; }
+      header { padding: 32px 0 28px; }
+      .norma-card { flex-direction: column; gap: 12px; }
+      .btn-leer { width: 100%; justify-content: center; }
+      .card-fecha { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <header>
+    <div class="header-eyebrow">
+      <span class="eyebrow-text">Plataforma de consulta</span>
+      <span class="sector-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5a7 7 0 0 1 14 0"/><path d="M3 9a10 10 0 0 1 18 0"/><line x1="12" y1="12" x2="12" y2="20"/><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg>
+        Telecomunicaciones
+      </span>
+    </div>
+    <h1>Normativa <em>OSIPTEL</em></h1>
+    <p class="header-desc">Consulta resoluciones, reglamentos y decretos del sector telecomunicaciones. Los resultados redirigen al documento oficial en OSIPTEL o el Diario Oficial.</p>
+  </header>
+
+  <section class="search-section" aria-label="Buscador de normas">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" id="search-input" placeholder="Buscar norma… ej: interconexión, espectro, radiodifusión" autocomplete="off" spellcheck="false" aria-label="Buscar normativas" />
+      <button id="clear-btn" aria-label="Limpiar búsqueda">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="search-chips" role="list" aria-label="Búsquedas sugeridas">
+      <button class="chip" role="listitem" data-query="interconexión">Interconexión</button>
+      <button class="chip" role="listitem" data-query="espectro radioeléctrico">Espectro radioeléctrico</button>
+      <button class="chip" role="listitem" data-query="radiodifusión">Radiodifusión</button>
+      <button class="chip" role="listitem" data-query="servicios públicos">Servicios públicos</button>
+      <button class="chip" role="listitem" data-query="decreto supremo">Decreto supremo</button>
+    </div>
+  </section>
+
+  <!-- Instrucciones de actualización (visible solo cuando el índice está embebido) -->
+  <div class="update-banner visible" id="update-banner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12" stroke-width="2"/><line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2"/></svg>
+    <p><strong>Índice embebido</strong> — Para actualizar las normas, ejecuta <code>python scraper_osiptel.py</code>, copia el nuevo JSON y reemplaza la variable <code>NORMAS_DATA</code> en este archivo. <a href="https://github.com" target="_blank" rel="noopener">Ver instrucciones en el README.</a></p>
+  </div>
+
+  <section aria-label="Resultados">
+    <div class="results-bar">
+      <span class="results-count" id="results-count" aria-live="polite"></span>
+      <span class="index-status loaded" id="index-status"></span>
+    </div>
+    <ul id="results-list" aria-label="Normas encontradas"></ul>
+  </section>
+
+  <footer>
+    <p class="footer-note">
+      Fuente: <a href="https://www.osiptel.gob.pe" target="_blank" rel="noopener">osiptel.gob.pe</a> ·
+      Esta plataforma no aloja documentos. Los enlaces redirigen al sitio oficial.
+    </p>
+    <span class="footer-update" id="footer-update"></span>
+  </footer>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+//  ÍNDICE DE NORMAS — actualizar este bloque con el scraper
+//  Ejecutar: python scraper_osiptel.py
+//  Luego reemplazar el array NORMAS_DATA con el JSON generado
+// ════════════════════════════════════════════════════════════════
+const NORMAS_DATA = [
+  {"titulo":"Reglamento de Interconexión de Redes de Servicios Públicos de Telecomunicaciones","tipo":"Resolución de Consejo Directivo","fecha":"2024-03-15","tags":["interconexión","telecomunicaciones","servicios públicos de telecomunicaciones"],"url_oficial":"https://www.osiptel.gob.pe/portal-de-operadoras/contratos/interconexion/"},
+  {"titulo":"Normas que regulan el uso del Espectro Radioeléctrico para servicios móviles — Actualización 2024","tipo":"Resolución Ministerial","fecha":"2024-01-20","tags":["espectro radioeléctrico","telecomunicaciones","OSIPTEL"],"url_oficial":"https://www.osiptel.gob.pe/portal-de-operadoras/pedidos-de-opinion/transferencia-de-concesiones-que-involucra-espectro-radioelectrico/"},
+  {"titulo":"Reglamento de la Ley de Radiodifusión — Actualización 2023","tipo":"Decreto Supremo","fecha":"2023-11-08","tags":["radiodifusión","telecomunicaciones"],"url_oficial":"https://www.osiptel.gob.pe/portal-de-transparencia/textos-actualizados-de-las-principales-normas/"},
+  {"titulo":"Lineamientos para la Portabilidad Numérica en Redes de Telecomunicaciones","tipo":"Resolución de Consejo Directivo","fecha":"2023-09-14","tags":["telecomunicaciones","OSIPTEL","servicios públicos de telecomunicaciones"],"url_oficial":"https://www.osiptel.gob.pe/portal-del-usuario/lo-que-debes-saber/normativas-de-usuarios/"},
+  {"titulo":"Régimen de Sanciones aplicable a Concesionarios de Servicios Públicos de Telecomunicaciones","tipo":"Resolución de Consejo Directivo","fecha":"2023-07-02","tags":["OSIPTEL","servicios públicos de telecomunicaciones","telecomunicaciones"],"url_oficial":"https://www.osiptel.gob.pe/portal-de-operadoras/supervisiones-y-sanciones/registro-de-sanciones/"},
+  {"titulo":"Normas Técnicas sobre Calidad del Servicio de Internet Fijo y Móvil","tipo":"Resolución de Consejo Directivo","fecha":"2023-05-17","tags":["telecomunicaciones","OSIPTEL"],"url_oficial":"https://www.osiptel.gob.pe/portal-del-usuario/lo-que-debes-saber/normativas-de-usuarios/"},
+  {"titulo":"Condiciones de uso del Espectro Radioeléctrico para operadores MVNO","tipo":"Resolución Ministerial","fecha":"2023-03-30","tags":["espectro radioeléctrico","telecomunicaciones"],"url_oficial":"https://www.osiptel.gob.pe/portal-de-operadoras/contratos/operadores-moviles-virtuales/"},
+  {"titulo":"Procedimiento para la resolución de controversias de Interconexión entre operadoras","tipo":"Resolución de Consejo Directivo","fecha":"2022-12-05","tags":["interconexión","OSIPTEL","telecomunicaciones"],"url_oficial":"https://www.osiptel.gob.pe/portal-de-operadoras/solucion-de-controversias/secretaria-tecnica/normas/"},
+  {"titulo":"Plan Nacional de Atribución de Frecuencias — Banda 700 MHz","tipo":"Resolución Ministerial","fecha":"2022-09-19","tags":["espectro radioeléctrico","telecomunicaciones"],"url_oficial":"https://www.osiptel.gob.pe/buscador-de-normas-y-regulaciones/"},
+  {"titulo":"Reglamento de Infraestructura de Radiodifusión Comunitaria","tipo":"Decreto Supremo","fecha":"2022-06-11","tags":["radiodifusión","telecomunicaciones"],"url_oficial":"https://www.osiptel.gob.pe/buscador-de-normas-y-regulaciones/"},
+  {"titulo":"Texto Único Ordenado de las Condiciones de Uso de los Servicios Públicos de Telecomunicaciones","tipo":"Resolución de Consejo Directivo","fecha":"2022-02-10","tags":["servicios públicos de telecomunicaciones","telecomunicaciones","OSIPTEL"],"url_oficial":"https://www.osiptel.gob.pe/media/i40bqrek/tuo-de-condiciones-de-uso-10-02-2022.pdf"},
+  {"titulo":"Reglamento General de Tarifas para Servicios Públicos de Telecomunicaciones","tipo":"Resolución de Consejo Directivo","fecha":"2021-08-03","tags":["telecomunicaciones","OSIPTEL","servicios públicos de telecomunicaciones"],"url_oficial":"https://www.osiptel.gob.pe/portal-de-operadoras/regulacion/tarifas-tope/"},
+  {"titulo":"Norma que regula la Neutralidad de Red en el Servicio de Acceso a Internet","tipo":"Resolución de Consejo Directivo","fecha":"2021-04-22","tags":["telecomunicaciones","OSIPTEL"],"url_oficial":"https://www.osiptel.gob.pe/portal-de-operadoras/regulacion/neutralidad-de-red/"},
+  {"titulo":"Reglamento para la compartición de infraestructura de telecomunicaciones entre operadoras","tipo":"Decreto Supremo","fecha":"2020-11-15","tags":["telecomunicaciones","OSIPTEL","interconexión"],"url_oficial":"https://www.osiptel.gob.pe/portal-de-operadoras/contratos/comparticion-de-infraestructura/"},
+  {"titulo":"Reglamento de Fiscalización, Infracciones y Sanciones en Telecomunicaciones","tipo":"Resolución de Consejo Directivo","fecha":"2020-06-30","tags":["OSIPTEL","telecomunicaciones","servicios públicos de telecomunicaciones"],"url_oficial":"https://www.osiptel.gob.pe/portal-de-operadoras/supervisiones-y-sanciones/multas-impuestas/"}
+];
+// ════════════════════════════════════════════════════════════════
+
+// ── State ──
+let NORMAS = [...NORMAS_DATA].sort((a,b) => (b.fecha||'').localeCompare(a.fecha||''));
+let currentQuery = '';
+
+// ── Init status ──
+document.getElementById('index-status').textContent = `Índice cargado · ${NORMAS.length} normas`;
+document.getElementById('footer-update').textContent = `Índice: ${NORMAS[0]?.fecha || '—'}`;
+
+// ── Utilities ──
+function norm(str) {
+  return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function formatFecha(f) {
+  if (!f) return '';
+  const [y,m,d] = f.split('-');
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${parseInt(d,10)} ${meses[parseInt(m,10)-1]} ${y}`;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function resaltar(texto, query) {
+  if (!query || query.length < 2) return esc(texto);
+  const q = norm(query).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const nTexto = norm(texto);
+  const re = new RegExp(q, 'gi');
+  // Build offset map: normalized position → original position
+  const map = [];
+  for (let i = 0; i < texto.length; i++) {
+    const nc = norm(texto[i]);
+    for (let j = 0; j < nc.length; j++) map.push(i);
+  }
+  let result = '', last = 0, match;
+  while ((match = re.exec(nTexto)) !== null) {
+    const s = map[match.index] ?? match.index;
+    const e = (map[match.index + match[0].length - 1] ?? match.index + match[0].length - 1) + 1;
+    result += esc(texto.slice(last, s)) + '<mark>' + esc(texto.slice(s, e)) + '</mark>';
+    last = e;
+  }
+  return result + esc(texto.slice(last));
+}
+
+// ── Search ──
+function buscar(query) {
+  const q = norm(query.trim());
+  if (q.length < 2) return null;
+  return NORMAS.filter(n => norm(n.titulo + ' ' + (n.tags||[]).join(' ') + ' ' + (n.tipo||'')).includes(q));
+}
+
+// ── Render ──
+function renderResultados(query) {
+  const lista = document.getElementById('results-list');
+  const countEl = document.getElementById('results-count');
+  const res = buscar(query);
+
+  if (res === null) {
+    countEl.textContent = '';
+    lista.innerHTML = `<li class="state-msg">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <p>Escribe para buscar</p>
+      <span>${NORMAS.length} normas en el índice · sector telecomunicaciones</span>
+    </li>`;
+    return;
+  }
+
+  countEl.textContent = res.length === 0 ? '' : `${res.length} resultado${res.length!==1?'s':''}`;
+
+  if (res.length === 0) {
+    lista.innerHTML = `<li class="state-msg">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11" stroke-width="2"/></svg>
+      <p>Sin resultados para «${esc(query)}»</p>
+      <span>Prueba con otro término</span>
+    </li>`;
+    return;
+  }
+
+  const qn = norm(query.trim());
+  lista.innerHTML = res.map((n, i) => {
+    const tags = (n.tags||[]).map(t =>
+      `<span class="tag${norm(t).includes(qn)?' match':''}">${esc(t)}</span>`
+    ).join('');
+    const fecha = n.fecha ? `<span class="card-fecha">${formatFecha(n.fecha)}</span>` : '';
+    return `<li class="norma-card" style="animation-delay:${i*0.04}s">
+      <div class="card-body">
+        <div class="card-tipo">${esc(n.tipo||'Norma')}</div>
+        <div class="card-titulo">${resaltar(n.titulo, query)}</div>
+        <div class="card-meta">${tags}${fecha}</div>
+      </div>
+      <a class="btn-leer" href="${esc(n.url_oficial)}" target="_blank" rel="noopener" aria-label="Leer norma: ${esc(n.titulo)}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Leer en OSIPTEL
+      </a>
+    </li>`;
+  }).join('');
+}
+
+// ── Events ──
+const input = document.getElementById('search-input');
+const clearBtn = document.getElementById('clear-btn');
+
+input.addEventListener('input', () => {
+  currentQuery = input.value;
+  clearBtn.style.display = currentQuery.length > 0 ? 'flex' : 'none';
+  renderResultados(currentQuery);
+});
+
+clearBtn.addEventListener('click', () => {
+  input.value = '';
+  currentQuery = '';
+  clearBtn.style.display = 'none';
+  input.focus();
+  renderResultados('');
+});
+
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const q = chip.dataset.query;
+    input.value = q;
+    currentQuery = q;
+    clearBtn.style.display = 'flex';
+    input.focus();
+    renderResultados(q);
+  });
+});
+
+// ── Init render ──
+renderResultados('');
+</script>
+</body>
+</html>
